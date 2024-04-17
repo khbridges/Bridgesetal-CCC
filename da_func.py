@@ -1,5 +1,7 @@
 import numpy as np
 import scanpy as sc
+import milopy  # had to revert markupsafe (2.0.1) for updated version issue
+import milopy.core as milo
 import itertools
 from distinctipy import distinctipy
 import networkx as nx
@@ -25,6 +27,25 @@ def build_samplerep(adata, sample_slot, replicate_slot):
     for r in np.arange(adata.shape[0]):
         sample_rep[r] = str(adata.obs[sample_slot][r]) + ' ' + str(adata.obs[replicate_slot][r])
     return sample_rep
+
+
+def run_milo(adata):
+    sc.pp.neighbors(adata)
+    milo.make_nhoods(adata)
+    # Count cells from each sample (just cond, no rep) in each nhood
+    adata.obs['rep_code'] = adata.obs['Condition'].cat.codes
+    milo.count_nhoods(adata, sample_col="rep_code")
+    # Test for differential abundance between conditions
+    # need to convert to "continuous" encoding to describe time
+    milo.DA_nhoods(adata, design="~ cond_continuous")
+    # build graph for viz
+    milopy.utils.build_nhood_graph(adata)
+
+    # annotation of nhoods by joint celltypes of interacting pairs
+    milopy.utils.annotate_nhoods(adata, anno_col='celltype.Joint')
+    adata.uns['nhood_adata'].obs.loc[adata.uns['nhood_adata'].obs["nhood_annotation_frac"] < 0.5, "nhood_annotation"] = "Mixed"
+
+    return adata
 
 
 def group_nhoods(adata, min_connect, max_difflfc):
@@ -122,3 +143,39 @@ def get_sc_louvain(adata, cluster_slot='louvain'):
             sc_louvain[t] = np.argmax(sc_onehot[t, :])
 
     return sc_louvain.astype('int')
+
+
+def highlight_ind(clust, adata):
+    highlight_ind_ = []
+    for g in clust:
+        i = np.where(adata.obs['louvain_str'] == g)[0]
+        highlight_ind_.append(i)
+    adata_highlight = adata[np.array(list(itertools.chain(*highlight_ind_)))]
+    return adata_highlight
+
+
+def highlight_NICHEScluster(niches_adata, adata, cluster_no):
+    codes_1 = niches_adata[niches_adata.obs['sc_louvain'] == cluster_no].obs.index
+
+    v = np.zeros(adata.shape[0])
+    w = np.zeros(adata.shape[0])
+
+    for n in codes_1:
+        ind = np.where(adata.obs.index.str.contains("-".join(n.split("-", 2)[:1])))
+        if len(ind[0]) > 0:
+            v[ind[0]] = 1
+
+    for n in codes_1:
+        ind = np.where(adata.obs.index.str.contains("-".join(n.split('—')[1].split("-", 2)[:1])))
+        if len(ind[0]) > 0:
+            w[ind[0]] = 1
+
+    adata.obs['cluster{}_sending'.format(cluster_no)] = v
+    adata.obs['cluster{}_receiving'.format(cluster_no)] = w
+    highlight_map = {0: 'Other', 1: 'Highlight'}
+    adata.obs['cluster{}_sending'.format(cluster_no)] = adata.obs['cluster{}_sending'.format(cluster_no)].map(highlight_map)
+    adata.obs['cluster{}_receiving'.format(cluster_no)] = adata.obs['cluster{}_receiving'.format(cluster_no)].map(highlight_map)
+
+    return adata
+
+

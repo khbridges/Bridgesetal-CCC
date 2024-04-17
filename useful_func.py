@@ -68,3 +68,6 @@ def plot_genes_bootstrap(adata, cc_geneset, cat_order, meta_slot, bar_colors, y_
         return dat_stat2
 
 
+def comb_rep(adata, slot_name):
+    adata.obs['sample'] = [adata.obs[slot_name][h].split()[0] for h in range(adata.shape[0])]
+    return adata
