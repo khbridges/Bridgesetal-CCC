@@ -4,8 +4,6 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from da_func import encode_replicates
-from da_func import build_samplerep
 from useful_func import remove_recompute
 
 # figure params & color scheme for plotting

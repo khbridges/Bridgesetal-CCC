@@ -1,6 +1,5 @@
 import scanpy as sc
 import numpy as np
-import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import milopy
@@ -33,7 +32,7 @@ celltype_dict = {'Basophil': sns.color_palette('tab20', 20)[0],
                  'Tumor cell': sns.color_palette('tab20', 20)[3],
                  'XCR1+ DC': sns.color_palette('tab20', 20)[5]}
 
-# read ctrl vs CD40ag data in from checkpoint
+# read ICB dosing data in from checkpoint
 cpi = sc.read('/Users/katebridges/Downloads/cpi-20220809.h5ad')
 
 # encoding replicates for stat analysis
