@@ -160,7 +160,7 @@ lr_lim = ['Il10—Il10ra', 'Il18—Il18r1',
 sc.pl.matrixplot(cd40_highlight, lr_lim, groupby='louvain_str', dendrogram=False, swap_axes=True,
                  categories_order=highlight_clust0, standard_scale='var', cmap='Reds')
 
-# highlighting cells in gene expression space which are predicted to participate (3D)
+# highlighting cells in gene expression space which are predicted to participate in clusters of interest (3D)
 cd40 = highlight_NICHEScluster(cd40_comm, cd40, 25)
 cd40 = highlight_NICHEScluster(cd40_comm, cd40, 20)
 cd40.obs['20s_25r'] = ['{} + {}'.format(cd40.obs['cluster20_sending'][j], cd40.obs['cluster25_receiving'][j]) for j in np.arange(cd40.shape[0])]

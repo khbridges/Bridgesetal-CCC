@@ -61,7 +61,7 @@ sc.pl.stacked_violin(cpi, therapy_targets['ligands'], groupby='celltype', swap_a
 # limiting object to macrophages, DCs, and T cells for NICHES network generation (in R)
 celltype_map = {'Basophil': 'Basophil',
                 'CCR7+ DC': 'DC',
-               'CD4+ T cell': 'T cell',
+                'CD4+ T cell': 'T cell',
                 'CD8+ T cell': 'T cell',
                 'Fibroblast': 'Fibroblast',
                 'Macrophage': 'Macrophage',

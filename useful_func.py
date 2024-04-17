@@ -1,5 +1,4 @@
 import scanpy as sc
-import scvelo as scv
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -71,3 +70,33 @@ def plot_genes_bootstrap(adata, cc_geneset, cat_order, meta_slot, bar_colors, y_
 def comb_rep(adata, slot_name):
     adata.obs['sample'] = [adata.obs[slot_name][h].split()[0] for h in range(adata.shape[0])]
     return adata
+
+
+def find_clust(data, clustermap, num_clust, color_pal, row_or_col):
+    if row_or_col == 'row':
+        rc_ind = 0
+        dendro_link = clustermap.dendrogram_row.linkage
+    else:
+        rc_ind = 1
+        dendro_link = clustermap.dendrogram_col.linkage
+
+    cluster_iter = np.zeros((data.shape[rc_ind], data.shape[rc_ind]))
+    cluster_iter[:, 0] = np.arange(data.shape[rc_ind])
+
+    for g in np.arange(1, data.shape[rc_ind], 1):
+        cluster_iter[:, g] = cluster_iter[:, g - 1]
+        pair = dendro_link[g - 1, :2]
+        ind_0 = np.where(cluster_iter[:, g] == pair[0])[0]
+        ind_1 = np.where(cluster_iter[:, g] == pair[1])[0]
+        for y in ind_0:
+            cluster_iter[y, g] = g + data.shape[rc_ind] - 1
+        for z in ind_1:
+            cluster_iter[z, g] = g + data.shape[rc_ind] - 1
+
+    # renumber corr # clusters & create dictionary to feed to sns clustermap
+    network_pal = sns.color_palette(color_pal, len(np.unique(cluster_iter[:, data.shape[rc_ind] - num_clust])))
+    network_lut = dict(zip(np.unique(cluster_iter[:, data.shape[rc_ind] - num_clust]), network_pal))
+    network_colors = pd.Series(cluster_iter[:, data.shape[rc_ind] - num_clust],
+                               index=cluster_iter[:, data.shape[rc_ind] - num_clust]).map(network_lut)
+
+    return network_lut, network_colors
