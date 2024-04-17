@@ -179,3 +179,9 @@ def highlight_NICHEScluster(niches_adata, adata, cluster_no):
     return adata
 
 
+def nhood_expression_mapping(adata, gene_oi):
+    avg_expr = [np.mean(adata[adata.obs['sc_louvain'] == b][:, gene_oi].X).tolist() for b in np.unique(adata.obs['sc_louvain'])]
+    expr_nhood_map = {np.unique(adata.obs['sc_louvain'])[c]: avg_expr[c] for c in np.arange(len(np.unique(adata.obs['sc_louvain'])))}
+
+    return expr_nhood_map
+

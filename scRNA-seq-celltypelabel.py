@@ -112,3 +112,8 @@ cpi.write('/Users/katebridges/Downloads/cpi-20220809.h5ad')
 combination = adata[adata.obs['sample'].str.contains('BD2') | adata.obs['sample'].str.contains('BD5') | adata.obs['sample'].str.contains('BD6')]
 combination = remove_recompute(combination)
 combination.write('/Users/katebridges/Downloads/20230809_ctrl-cpi-comb.h5ad')
+
+# ICB lo + CD40ag @ d8 vs d10
+d8v10 = adata[adata.obs['sample'].str.contains('BD6') | adata.obs['sample'].str.contains('BD5') | adata.obs['sample'].str.contains('BD7')]
+d8v10 = remove_recompute(d8v10)
+d8v10.write('/Users/katebridges/Downloads/20221201_cpicd40_d8-10.h5ad')
