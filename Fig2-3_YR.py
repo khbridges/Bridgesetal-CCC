@@ -174,4 +174,17 @@ sc.pl.umap(cd40, color=['20s_25r'], palette=map_map, s=45, sort_order=True, grou
 sc.pl.umap(cd40, color=['20r_25s'], palette=map_map, s=45, sort_order=True, groups=['Other + Highlight', 'Highlight + Other', 'Highlight + Highlight'])
 
 # patterns in expression of genes downstream of predicted signaling (3E)
+cd40_t = cd40[cd40.obs['celltype'].str.contains('T cell') | cd40.obs['celltype'].str.contains('Treg')]
+cd40_t.layers["scaled"] = sc.pp.scale(cd40_t, copy=True).X
 
+# reading in cytokine signature genes from Immune Dictionary
+cd8_genes = pd.read_excel('/Users/katebridges/Downloads/41586_2023_6816_MOESM5_ESM.xlsx', sheet_name='T_cell_CD8')
+il18_genes = cd8_genes[cd8_genes['Cytokine'] == 'IL-18']
+
+# plotting mean scaled expr of top 5 IL18 genes
+sc.pl.matrixplot(cd40_t, il18_genes['Gene'][:5], groupby='cluster20_receiving', swap_axes=True,
+                 layer="scaled", vcenter=0, cmap='RdYlBu_r')
+
+# calculating signature score using top 25 and plotting
+sc.tl.score_genes(cd40_t, il18_genes['Gene'][:25], score_name='IL18resp')
+sns.violinplot(data=cd40_t.obs, x='cluster20_receiving', y='IL18resp')

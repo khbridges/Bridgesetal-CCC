@@ -1,5 +1,6 @@
 import scanpy as sc
 import numpy as np
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import milopy
@@ -122,7 +123,11 @@ cpi = highlight_NICHEScluster(cpi_comm, cpi, 33)
 sc.pl.umap(cpi, color='cluster33_sending', groups='Highlight')  # (S3E)
 
 cpi_macs = cpi[cpi.obs['celltype'] == 'Macrophage']
-bar_col = ['C0', 'xkcd:light grey']
-plot_genes_bootstrap(cpi_macs, ['Tgfbi'], np.unique(cpi_macs.obs['cluster33_receiving']), 'cluster33_receiving', bar_col, 10)
-plot_genes_bootstrap(cpi_macs, ['Fos'], np.unique(cpi_macs.obs['cluster33_receiving']), 'cluster33_receiving', bar_col, 9)
-plot_genes_bootstrap(cpi_macs, ['Mapkapk2'], np.unique(cpi_macs.obs['cluster33_receiving']), 'cluster33_receiving', bar_col, 6)
+cpi_macs.layers["scaled"] = sc.pp.scale(cpi_macs, copy=True).X
+
+# bar_col = ['C0', 'xkcd:light grey']
+# plot_genes_bootstrap(cpi_macs, ['Tgfbi'], np.unique(cpi_macs.obs['cluster33_receiving']), 'cluster33_receiving', bar_col, 10)
+# plot_genes_bootstrap(cpi_macs, ['Fos'], np.unique(cpi_macs.obs['cluster33_receiving']), 'cluster33_receiving', bar_col, 9)
+# plot_genes_bootstrap(cpi_macs, ['Mapkapk2'], np.unique(cpi_macs.obs['cluster33_receiving']), 'cluster33_receiving', bar_col, 6)
+
+sc.pl.matrixplot(cpi_macs, ['Dusp1', 'Ddit4', 'Mtor','Rheb','Akt1','Rptor'], groupby='cluster33_receiving', layer="scaled", vcenter=0, cmap='RdYlBu_r')
