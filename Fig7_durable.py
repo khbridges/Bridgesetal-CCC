@@ -87,7 +87,7 @@ combd10.obs['cond_continuous'] = combd10.obs["sample_corr"].map(day_dict).astype
 combd10 = run_milo(combd10)
 milopy.plot.plot_nhood_graph(combd10, alpha=0.1, min_size=5)
 
-# cluster and visualize results for "durable" clusters (spatialFDR > 0.1, abs(logFC) < 1) (6C)
+# cluster and visualize results for "durable" clusters (spatialFDR > 0.1, abs(logFC) < 1) (6C-D)
 partition5 = cluster_nhoods(combd10, 2, 1.1)
 louvain_lab0, louvain_pal0 = plot_durable_clusters(combd10, list(partition5.values()), 'Louvain cluster', alpha=0.1, beta=1, min_size=5)
 combd10.uns['nhood_adata'].obs['louvain'] = louvain_lab0
@@ -102,13 +102,13 @@ combd10.write('/Users/katebridges/niches_alra_combd8-d10_MILO.h5ad')
 sc.tl.rank_genes_groups(combd10, 'louvain_str', method='wilcoxon', key_added='louvain-wilc')
 write_deres('/Users/katebridges/Downloads/20221202_COMB-d8vd10_wilc.xlsx', combd10, np.unique(combd10.obs['sc_louvain']), 'louvain-wilc')
 
-# visualization of L-R axes of interest in highlighted DA clusters (6D)
+# visualization of L-R axes of interest in highlighted DA clusters (6E)
 # for renumbered clusters 5 (3) and 27 (11)
 highlight_clust3 = ['5', '27', '-1']
 d10_highlight = highlight_ind(highlight_clust3, combd10)
 
 lr_lim2 = ['Il18—Il18r1', 'Cxcl10—Cxcr3', 'Cxcl9—Cxcr3',
-           'Il27—Il27ra', 'Il15—Il2rb', 'Il15—Il2rg', 'Cxcl16—Cxcr6',
+           'Il27—Il27ra', 'Cd86—Cd28', 'Cd80—Cd28', 'Il15—Il2rb', 'Il15—Il2rg', 'Cxcl16—Cxcr6',
            'Il12b—Il12rb1', 'Il12b—Il12rb2', 'Tnfsf4—Tnfrsf4']
 
 sc.pl.matrixplot(d10_highlight, lr_lim2, groupby='louvain_str', dendrogram=False, swap_axes=True,
