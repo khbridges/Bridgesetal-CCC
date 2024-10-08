@@ -34,6 +34,12 @@ celltype_dict = {'Basophil': sns.color_palette('tab20', 20)[0],
 # read ctrl vs ICB lo vs ICB lo + CD40ag data in from checkpoint
 icb_cd40 = sc.read('/Users/katebridges/Downloads/20230809_ctrl-cpi-comb.h5ad')
 
+# viz data in gene expression space (5A)
+for m in ['BD2', 'BD4', 'BD6']:
+    sc.pl.umap(icb_cd40[icb_cd40.obs['sample'].str.contains(m)], color='VectorType', s=30)
+    plt.xlim([np.min(icb_cd40.obsm['X_umap'], axis=0)[0] - 1, np.max(icb_cd40.obsm['X_umap'], axis=0)[0] + 1])
+    plt.ylim([np.min(icb_cd40.obsm['X_umap'], axis=0)[1] - 1, np.max(icb_cd40.obsm['X_umap'], axis=0)[1] + 1])
+
 # encoding replicates for stat analysis
 icb_cd40.obs['replicate'] = encode_replicates(icb_cd40, None)
 
@@ -97,13 +103,13 @@ comb.write('/Users/katebridges/niches_alra_comb_cpid8_MILO.h5ad')
 sc.tl.rank_genes_groups(comb, 'louvain_str', method='wilcoxon', key_added='louvain-wilc')
 write_deres('/Users/katebridges/Downloads/20221117_COMB-CPIniches_wilc.xlsx', comb, np.unique(comb.obs['sc_louvain']), 'louvain-wilc')
 
-# visualization of L-R axes of interest in highlighted DA clusters (5C)
-highlight_clust2 = ['44', '4', '47', '46', '-1']
+# visualization of L-R axes of interest in highlighted DA clusters (5B)
+highlight_clust2 = ['36', '47', '46', '44', '4', '-1']
 combcpi_highlight = highlight_ind(highlight_clust2, comb)
 
 lr_lim1 = ['Il10—Il10ra', 'Csf1—Csf1r', 'Csf2—Csf2ra', 'Csf2—Csf2rb',
            'Ifng—Ifngr1', 'Ifng—Ifngr2',
-           'Cd80—Ctla4', 'Tnfsf4—Tnfrsf4', 'Il12b—Il12rb1', 'Il12b—Il12rb2', 'Il6—Il6ra',
+           'Cd80—Ctla4', 'Ccl22—Ccr4', 'Tnfsf4—Tnfrsf4', 'Il12b—Il12rb1', 'Il12b—Il12rb2', 'Il6—Il6ra',
            'Il15—Il2rb', 'Il15—Il2rg',
            'Il18—Il18r1',
            'Cxcl9—Cxcr3', 'Cxcl10—Cxcr3',
@@ -112,8 +118,10 @@ lr_lim1 = ['Il10—Il10ra', 'Csf1—Csf1r', 'Csf2—Csf2ra', 'Csf2—Csf2rb',
 sc.pl.matrixplot(combcpi_highlight, lr_lim1, groupby='louvain_str', dendrogram=False, swap_axes=True,
                  categories_order=['47', '46', '44', '4', '-1'], standard_scale='var', cmap='Reds')
 
-# highlighting cells in gene expression space which are predicted to participate in clusters of interest (5D-E)
-# considering renumbered clusters 1 (4), 14 (46), and 9 (36)
+# highlighting cells in gene expression space which are predicted to participate in clusters of interest (5C-D)
+# considering renumbered clusters 13 (44), 15 (47), 1 (4), 14 (46), and 9 (36)
+icb_cd40_lim = highlight_NICHEScluster(comb, icb_cd40_lim, 44)
+icb_cd40_lim = highlight_NICHEScluster(comb, icb_cd40_lim, 47)
 icb_cd40_lim = highlight_NICHEScluster(comb, icb_cd40_lim, 4)
 icb_cd40_lim = highlight_NICHEScluster(comb, icb_cd40_lim, 46)
 icb_cd40_lim = highlight_NICHEScluster(comb, icb_cd40_lim, 36)
@@ -134,5 +142,5 @@ icb_cd40_lim.obs['46s_4r'] = icb_cd40_lim.obs['46s_4r'].cat.reorder_categories([
 sc.pl.umap(icb_cd40_lim, color=['4s_46r'], palette=map_map, s=45, sort_order=True, groups=['Other + Highlight', 'Highlight + Other', 'Highlight + Highlight'])
 sc.pl.umap(icb_cd40_lim, color=['46s_4r'], palette=map_map, s=45, sort_order=True, groups=['Other + Highlight', 'Highlight + Other', 'Highlight + Highlight'])
 
-# just viz cluster 9 (36) sending/receiving (5E)
+# just viz cluster 9 (36) sending/receiving (5D)
 sc.pl.umap(icb_cd40_lim, color=['cluster36_sending', 'cluster36_receiving'], groups='Highlight')
