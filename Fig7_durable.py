@@ -76,9 +76,10 @@ combd10 = comb_rep(combd10, 'Condition')
 
 sample_corr = {'1': 'BD6', '3': 'BD7'}
 combd10.obs['sample_corr'] = combd10.obs['sample'].map(sample_corr)
-sc.pl.umap(combd10, color='VectorType', s=30)
-plt.xlim([np.min(combd10.obsm['X_umap'], axis=0)[0]-1, np.max(combd10.obsm['X_umap'], axis=0)[0]+1])
-plt.ylim([np.min(combd10.obsm['X_umap'], axis=0)[1]-1, np.max(combd10.obsm['X_umap'], axis=0)[1]+1])
+for b in ['BD6', 'BD7']:
+    sc.pl.umap(combd10[combd10.obs['sample'].str.contains(b)], color='VectorType', s=30)
+    plt.xlim([np.min(combd10.obsm['X_umap'], axis=0)[0]-1, np.max(combd10.obsm['X_umap'], axis=0)[0]+1])
+    plt.ylim([np.min(combd10.obsm['X_umap'], axis=0)[1]-1, np.max(combd10.obsm['X_umap'], axis=0)[1]+1])
 
 # differential abundance testing of NICHES networks with Milo & viz (6B)
 day_dict = {'BD6': 1, 'BD7': 3}
@@ -114,4 +115,3 @@ sc.pl.matrixplot(d10_highlight, lr_lim2, groupby='louvain_str', dendrogram=False
                  standard_scale='var', cmap='Reds',
                  categories_order=['5', '27', '-1'])
 
-# patterns in expression of genes downstream of predicted signaling (S5D)
