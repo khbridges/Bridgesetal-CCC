@@ -46,17 +46,11 @@ dose_dict = {'Ctrl d8': 0,
 cpi.obs['cond_continuous'] = cpi.obs["sample_cond"].map(dose_dict).astype(int)
 cpi.obs['sample_rep'] = build_samplerep(cpi, 'cond_continuous', 'replicate')
 
-# plotting data in UMAP space by treatment, color by celltype (S3A)
+# plotting data in UMAP space by treatment, color by celltype (S4C)
 for b in ['BD2', 'BD5', 'BD4']:
     sc.pl.umap(cpi[cpi.obs['sample'].str.contains(b)], color='celltype', palette=celltype_dict, s=25)
     plt.xlim([np.min(cpi.obsm['X_umap'], axis=0)[0]-1, np.max(cpi.obsm['X_umap'], axis=0)[0]+1])
     plt.ylim([np.min(cpi.obsm['X_umap'], axis=0)[1]-1, np.max(cpi.obsm['X_umap'], axis=0)[1]+1])
-
-# visualizing cell type-specific expression of therapy-disrupted L-R axes (S3B)
-therapy_targets = {'receptors': ['Pdcd1', 'Ctla4'],
-                   'ligands': ['Cd274', 'Pdcd1lg2', 'Cd80', 'Cd86']}
-sc.pl.stacked_violin(cpi, therapy_targets['receptors'], groupby='celltype', swap_axes=True, dendrogram=True)
-sc.pl.stacked_violin(cpi, therapy_targets['ligands'], groupby='celltype', swap_axes=True, dendrogram=True)
 
 # limiting object to macrophages, DCs, and T cells for NICHES network generation (in R)
 celltype_map = {'Basophil': 'Basophil',
@@ -83,9 +77,10 @@ cpi_lim.write('/Users/katebridges/Downloads/ICBdoses-LIM.h5ad')
 cpi_comm = sc.read('/Users/katebridges/niches_alra_cpid8_iter2.h5ad')
 cpi_comm = comb_rep(cpi_comm, 'Condition')
 
-sc.pl.umap(cpi_comm, color='VectorType', s=30)
-plt.xlim([np.min(cpi_comm.obsm['X_umap'], axis=0)[0]-1, np.max(cpi.obsm['X_umap'], axis=0)[0]+1])
-plt.ylim([np.min(cpi_comm.obsm['X_umap'], axis=0)[1]-1, np.max(cpi.obsm['X_umap'], axis=0)[1]+1])
+for k in ['BD2', 'BD5', 'BD4']:
+    sc.pl.umap(cpi_comm[cpi_comm.obs['sample'].str.contains(k)], color='VectorType', s=30)
+    plt.xlim([np.min(cpi_comm.obsm['X_umap'], axis=0)[0]-1, np.max(cpi.obsm['X_umap'], axis=0)[0]+1])
+    plt.ylim([np.min(cpi_comm.obsm['X_umap'], axis=0)[1]-1, np.max(cpi.obsm['X_umap'], axis=0)[1]+1])
 
 # differential abundance testing of NICHES networks with Milo & viz (4B)
 dose_dict = {'BD2': 0,
@@ -120,14 +115,11 @@ sc.pl.embedding(nhood_cpi, "X_milo_graph", size=nhood_cpi.obs["Nhood_size"] * 10
 
 # viz of downstream signaling genes (4G) - cluster 33 was renumbered to 8 for viz
 cpi = highlight_NICHEScluster(cpi_comm, cpi, 33)
-sc.pl.umap(cpi, color='cluster33_sending', groups='Highlight')  # (S3E)
+sc.pl.umap(cpi, color='cluster33_sending', groups='Highlight')
 
+# isolating macrophages only
 cpi_macs = cpi[cpi.obs['celltype'] == 'Macrophage']
 cpi_macs.layers["scaled"] = sc.pp.scale(cpi_macs, copy=True).X
 
-# bar_col = ['C0', 'xkcd:light grey']
-# plot_genes_bootstrap(cpi_macs, ['Tgfbi'], np.unique(cpi_macs.obs['cluster33_receiving']), 'cluster33_receiving', bar_col, 10)
-# plot_genes_bootstrap(cpi_macs, ['Fos'], np.unique(cpi_macs.obs['cluster33_receiving']), 'cluster33_receiving', bar_col, 9)
-# plot_genes_bootstrap(cpi_macs, ['Mapkapk2'], np.unique(cpi_macs.obs['cluster33_receiving']), 'cluster33_receiving', bar_col, 6)
-
+# viz of z-scored expression of IL-10-inducible genes by cluster 8 macs vs other macs
 sc.pl.matrixplot(cpi_macs, ['Dusp1', 'Ddit4', 'Mtor','Rheb','Akt1','Rptor'], groupby='cluster33_receiving', layer="scaled", vcenter=0, cmap='RdYlBu_r')

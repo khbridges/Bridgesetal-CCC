@@ -79,7 +79,7 @@ cd40_comm = comb_rep(cd40_comm, 'Condition')
 
 # visualization in UMAP space (3A)
 for c in ['BD2', 'BD3']:
-    sc.pl.umap(cd40_comm[cd40_comm.str.contains(c)], color='VectorType', s=30)
+    sc.pl.umap(cd40_comm[cd40_comm.obs['sample'].str.contains(c)], color='VectorType', s=30)
     plt.xlim([np.min(cd40_comm.obsm['X_umap'], axis=0)[0]-1, np.max(cd40_comm.obsm['X_umap'], axis=0)[0]+1])
     plt.ylim([np.min(cd40_comm.obsm['X_umap'], axis=0)[1]-1, np.max(cd40_comm.obsm['X_umap'], axis=0)[1]+1])
 
