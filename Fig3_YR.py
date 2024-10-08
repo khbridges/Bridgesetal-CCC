@@ -44,47 +44,11 @@ dose_dict = {'Ctrl d8': 0,
 cd40.obs['cond_continuous'] = cd40.obs["sample_cond"].map(dose_dict).astype(int)
 cd40.obs['sample_rep'] = build_samplerep(cd40, 'cond_continuous', 'replicate')
 
-# plotting data in UMAP space by treatment, color by celltype (2B)
-sc.pl.umap(cd40[cd40.obs['sample'].str.contains('BD2')], color='celltype', palette=celltype_dict, s=25)
-plt.xlim([np.min(cd40.obsm['X_umap'], axis=0)[0]-1, np.max(cd40.obsm['X_umap'], axis=0)[0]+1])
-plt.ylim([np.min(cd40.obsm['X_umap'], axis=0)[1]-1, np.max(cd40.obsm['X_umap'], axis=0)[1]+1])
-
-sc.pl.umap(cd40[cd40.obs['sample'].str.contains('BD3')], color='celltype', palette=celltype_dict, s=25)
-plt.xlim([np.min(cd40.obsm['X_umap'], axis=0)[0]-1, np.max(cd40.obsm['X_umap'], axis=0)[0]+1])
-plt.ylim([np.min(cd40.obsm['X_umap'], axis=0)[1]-1, np.max(cd40.obsm['X_umap'], axis=0)[1]+1])
-
-# plotting data in UMAP space by expression of CD40 (2C)
-sc.pl.umap(cd40, color='Cd40', s=25, cmap='magma')
-
-# mean & fano factor calculation for ctrl vs CD40ag-treated macrophages (S1A)
-# isolating macrophages
-macro = cd40[cd40.obs['celltype'].str.contains('Macro')]
-macro.X = macro.layers['counts']
-
-# cc of interest
-cc = ['Tnf', 'Cxcl1', 'Ccl5', 'Ccl3', 'Il6', 'Il12b',  'Il10', 'Chil3', 'Ccl2']
-
-# calculate Fano factor for CCs of interest from raw counts (stored in cd40.layers['counts'])
-mac_calc = np.zeros((len(cd40.obs['sample_rep'].unique()), len(cc)))  # for fano
-mac_calc2 = np.zeros((len(cd40.obs['sample_rep'].unique()), len(cc)))  # for mean
-
-i = 0
-for f in cd40.obs['sample_rep'].unique():
-    macro_rep = pd.DataFrame(macro[macro.obs['sample_rep'].str.contains(f)][:, cc].X.todense())
-    mac_calc[i, :] = (macro_rep.var()/macro_rep.mean()).values
-    mac_calc2[i, :] = macro_rep.mean()
-    i = i + 1
-
-# writing results to file - for visualization in GraphPad Prism
-mac_calc = pd.DataFrame(mac_calc)
-mac_calc.index = cd40.obs['sample_rep'].unique()
-mac_calc.columns = cc
-mac_calc.to_excel('/Users/katebridges/Downloads/macroONLY_cd40-perrep_fano.xlsx')
-
-mac_calc2 = pd.DataFrame(mac_calc2)
-mac_calc2.index = cd40.obs['sample_rep'].unique()
-mac_calc2.columns = cc
-mac_calc2.to_excel('/Users/katebridges/Downloads/macroONLY_cd40-perrep_mean.xlsx')
+# plotting data in UMAP space by treatment, color by celltype (3A)
+for b in ['BD2', 'BD3']:
+    sc.pl.umap(cd40[cd40.obs['sample'].str.contains(b)], color='celltype', palette=celltype_dict, s=25)
+    plt.xlim([np.min(cd40.obsm['X_umap'], axis=0)[0]-1, np.max(cd40.obsm['X_umap'], axis=0)[0]+1])
+    plt.ylim([np.min(cd40.obsm['X_umap'], axis=0)[1]-1, np.max(cd40.obsm['X_umap'], axis=0)[1]+1])
 
 # limiting object to macrophages, DCs, and T cells for NICHES network generation (in R)
 celltype_map = {'Basophil': 'Basophil',
@@ -113,12 +77,14 @@ cd40_comm = sc.read('/Users/katebridges/niches_alra_cd40d8_iter2.h5ad')
 # combining replicates into each condition for metadata slot
 cd40_comm = comb_rep(cd40_comm, 'Condition')
 
-# visualization in UMAP space (2E & S2A)
-sc.pl.umap(cd40_comm, color='VectorType', s=30)
+# visualization in UMAP space (3A)
+for c in ['BD2', 'BD3']:
+    sc.pl.umap(cd40_comm[cd40_comm.str.contains(c)], color='VectorType', s=30)
+    plt.xlim([np.min(cd40_comm.obsm['X_umap'], axis=0)[0]-1, np.max(cd40_comm.obsm['X_umap'], axis=0)[0]+1])
+    plt.ylim([np.min(cd40_comm.obsm['X_umap'], axis=0)[1]-1, np.max(cd40_comm.obsm['X_umap'], axis=0)[1]+1])
+
 # sc.pl.umap(cd40_comm, color='celltype.Sending', s=30)
 # sc.pl.umap(cd40_comm, color='celltype.Receiving', s=30)
-plt.xlim([np.min(cd40_comm.obsm['X_umap'], axis=0)[0]-1, np.max(cd40_comm.obsm['X_umap'], axis=0)[0]+1])
-plt.ylim([np.min(cd40_comm.obsm['X_umap'], axis=0)[1]-1, np.max(cd40_comm.obsm['X_umap'], axis=0)[1]+1])
 
 # differential abundance testing of NICHES networks with Milo
 dose_dict = {'BD2': 0,
@@ -129,10 +95,10 @@ cd40_comm = run_milo(cd40_comm)
 # sns.histplot(cd40.uns['nhood_adata'].obs['Nhood_size'])
 # plt.axvline(np.median(cd40.uns['nhood_adata'].obs['Nhood_size']), color='k', linestyle='--')
 
-# visualization of differential abundance result (2F)
+# visualization of differential abundance result (3B)
 milopy.plot.plot_nhood_graph(cd40, alpha=0.1, min_size=5)
 
-# grouping differentially abundant nhoods for downstream analyses (2G)
+# grouping differentially abundant nhoods for downstream analyses (3C)
 partition1 = cluster_nhoods(cd40_comm, 2, 2.2)
 louvain_lab0, louvain_pal0 = plot_nhood_clusters(cd40_comm, list(partition1.values()), 'Louvain cluster', alpha=0.1, min_size=5)
 
@@ -149,7 +115,7 @@ cd40_comm.write('/Users/katebridges/niches_alra_cd40d8_iter2_MILO.h5ad')
 sc.tl.rank_genes_groups(cd40_comm, 'louvain_str', method='wilcoxon', key_added='louvain-wilc')
 write_deres('/Users/katebridges/Downloads/20221109_CD40niches_wilc.xlsx', cd40_comm, np.unique(cd40_comm.obs['sc_louvain']), 'louvain-wilc')
 
-# visualization of L-R axes of interest in highlighted DA clusters (3C)
+# visualization of L-R axes of interest in highlighted DA clusters (3E)
 highlight_clust0 = ['25', '20', '23', '28', '-1']
 cd40_highlight = highlight_ind(highlight_clust0, cd40_comm)
 lr_lim = ['Il10—Il10ra', 'Il18—Il18r1',
@@ -160,20 +126,8 @@ lr_lim = ['Il10—Il10ra', 'Il18—Il18r1',
 sc.pl.matrixplot(cd40_highlight, lr_lim, groupby='louvain_str', dendrogram=False, swap_axes=True,
                  categories_order=highlight_clust0, standard_scale='var', cmap='Reds')
 
-# highlighting cells in gene expression space which are predicted to participate in clusters of interest (3D)
-cd40 = highlight_NICHEScluster(cd40_comm, cd40, 25)
-cd40 = highlight_NICHEScluster(cd40_comm, cd40, 20)
-cd40.obs['20s_25r'] = ['{} + {}'.format(cd40.obs['cluster20_sending'][j], cd40.obs['cluster25_receiving'][j]) for j in np.arange(cd40.shape[0])]
-cd40.obs['20r_25s'] = ['{} + {}'.format(cd40.obs['cluster25_sending'][j], cd40.obs['cluster20_receiving'][j]) for j in np.arange(cd40.shape[0])]
-
-map_map = {'Highlight + Highlight': 'xkcd:violet',
-           'Highlight + Other': 'xkcd:light red',
-           'Other + Highlight': 'xkcd:bright blue',
-           'Other + Other':  'xkcd:light grey'}
-sc.pl.umap(cd40, color=['20s_25r'], palette=map_map, s=45, sort_order=True, groups=['Other + Highlight', 'Highlight + Other', 'Highlight + Highlight'])
-sc.pl.umap(cd40, color=['20r_25s'], palette=map_map, s=45, sort_order=True, groups=['Other + Highlight', 'Highlight + Other', 'Highlight + Highlight'])
-
-# patterns in expression of genes downstream of predicted signaling (3E)
+# patterns in expression of genes downstream of predicted signaling (3F)
+# focus on T cells predicted to receive IL18 signal in cluster 20
 cd40_t = cd40[cd40.obs['celltype'].str.contains('T cell') | cd40.obs['celltype'].str.contains('Treg')]
 cd40_t.layers["scaled"] = sc.pp.scale(cd40_t, copy=True).X
 
@@ -188,3 +142,17 @@ sc.pl.matrixplot(cd40_t, il18_genes['Gene'][:5], groupby='cluster20_receiving', 
 # calculating signature score using top 25 and plotting
 sc.tl.score_genes(cd40_t, il18_genes['Gene'][:25], score_name='IL18resp')
 sns.violinplot(data=cd40_t.obs, x='cluster20_receiving', y='IL18resp')
+
+# highlighting cells in gene expression space which are predicted to participate in clusters of interest (3H)
+cd40 = highlight_NICHEScluster(cd40_comm, cd40, 25)
+cd40 = highlight_NICHEScluster(cd40_comm, cd40, 20)
+cd40.obs['20s_25r'] = ['{} + {}'.format(cd40.obs['cluster20_sending'][j], cd40.obs['cluster25_receiving'][j]) for j in np.arange(cd40.shape[0])]
+cd40.obs['20r_25s'] = ['{} + {}'.format(cd40.obs['cluster25_sending'][j], cd40.obs['cluster20_receiving'][j]) for j in np.arange(cd40.shape[0])]
+
+map_map = {'Highlight + Highlight': 'xkcd:violet',
+           'Highlight + Other': 'xkcd:light red',
+           'Other + Highlight': 'xkcd:bright blue',
+           'Other + Other':  'xkcd:light grey'}
+sc.pl.umap(cd40, color=['20s_25r'], palette=map_map, s=45, sort_order=True, groups=['Other + Highlight', 'Highlight + Other', 'Highlight + Highlight'])
+sc.pl.umap(cd40, color=['20r_25s'], palette=map_map, s=45, sort_order=True, groups=['Other + Highlight', 'Highlight + Other', 'Highlight + Highlight'])
+
