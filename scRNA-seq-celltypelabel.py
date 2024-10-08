@@ -98,22 +98,29 @@ adata.write('/Users/katebridges/PycharmProjects/test/20211118_citeseq_annotated.
 # preparing objects for downstream analysis (by replicate & in pairs for comparison)
 adata.obs['hashing'] = np.argmax(adata.obsm['hash'], axis=1)
 
-# ctrl vs. CD40ag
+# all 5 d8 conditions for Fig 2 viz
+all_d8 = adata[adata.obs['sample'].str.contains('BD2') | adata.obs['sample'].str.contains('BD3') |
+               adata.obs['sample'].str.contains('BD5') | adata.obs['sample'].str.contains('BD4') |
+               adata.obs['sample'].str.contains('BD6')]
+all_d8 = remove_recompute(all_d8)
+all_d8.write('/Users/katebridges/Downloads/20220915_cd40only.h5ad')
+
+# ctrl vs. CD40ag (Fig 3)
 cd40 = adata[adata.obs['sample'].str.contains('BD2') | adata.obs['sample'].str.contains('BD3')]
 cd40 = remove_recompute(cd40)
 cd40.write('/Users/katebridges/Downloads/20220915_cd40only.h5ad')
 
-# ctrl vs. ICB lo vs. ICB hi
+# ctrl vs. ICB lo vs. ICB hi (Fig 4)
 cpi = adata[adata.obs['sample'].str.contains('BD2') | adata.obs['sample'].str.contains('BD5') | adata.obs['sample'].str.contains('BD4')]
 cpi = remove_recompute(cpi)
 cpi.write('/Users/katebridges/Downloads/cpi-20220809.h5ad')
 
-# ctrl vs. ICB lo vs. ICB lo + CD40ag
+# ctrl vs. ICB lo vs. ICB lo + CD40ag (Fig 5)
 combination = adata[adata.obs['sample'].str.contains('BD2') | adata.obs['sample'].str.contains('BD5') | adata.obs['sample'].str.contains('BD6')]
 combination = remove_recompute(combination)
 combination.write('/Users/katebridges/Downloads/20230809_ctrl-cpi-comb.h5ad')
 
-# ICB lo + CD40ag @ d8 vs d10
+# ICB lo + CD40ag @ d8 vs d10 (Fig 7)
 d8v10 = adata[adata.obs['sample'].str.contains('BD6') | adata.obs['sample'].str.contains('BD5') | adata.obs['sample'].str.contains('BD7')]
 d8v10 = remove_recompute(d8v10)
 d8v10.write('/Users/katebridges/Downloads/20221201_cpicd40_d8-10.h5ad')
